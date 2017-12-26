@@ -1,3 +1,204 @@
-Hello World
 <script src="static/js/jquery-2.0.3.min.js"></script>
+<script src="static/js/phaser.min.js"></script>
+<script src="static/game/cards.js"></script>
+<script src="static/game/events.js"></script>
+<script src="static/game/humans.js"></script>
+<!-- <script src="static/game/utils.js"></script> -->
+<link href="static/css/bootstrap.min.css" rel="stylesheet">
 
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>hello man!</title>
+    </head>
+    <body>
+        <div id="wrap">
+            <div class="container">
+                <nav class="navbar navbar-default" role="navigation">
+      
+                  <div class="navbar-header">
+    <!--                     <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand" href="#">Brand</a> -->
+                    </div>
+                </nav>
+                <div class="row">
+                    <div class="col-md-3" id="frame-left">
+                        <div class = "container" id = "human-selection-container">
+
+                        </div>
+
+                        <div class = "container">
+                            <h4>卡牌</h4>
+                            <div class="btn-group-vertical" id="cards-btn-group">
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3" id="frame-center">
+                        <div class="panel panel-default pre-scrollable" style="min-height: 300px">
+                            <table class="table table-fixed">
+                                <tbody id = "content-table">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-6" id="frame-right">
+                        <div class="panel panel-default pre-scrollable" style="min-height: 500px">
+                            <table class="table table-fixed">
+                                <thead>
+                                    <tr>
+                                        <th class="col-xs-2">姓名</th><th class="col-xs-1">力量</th><th class="col-xs-1">敏捷</th><th class="col-xs-1">速度</th><th class="col-xs-1">HP</th><th class="col-xs-1">MP</th><th class="col-xs-1">EXP</th>
+                                    </tr>
+                                </thead>
+                                <tbody id = "battle-human-table">
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="panel panel-default pre-scrollable" style="min-height: 300px">
+                            <table class="table table-fixed">
+                                <tbody id = "battle-content-table">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            
+            </div>
+        </div>
+    </body>
+</html>
+
+
+<script type="text/javascript">
+
+    (function() {
+        var gHumans, gFocus, gContentStreamContainer, gBattleStreamContainer, gBatlleHuman;
+        init();
+        drawHuman();
+        function init() {
+            gHumans = {"me" : new Human("me", "你"), "gf" : new Human("gf", "陌生的女神官")};
+            gBatlleHuman = {};
+            gFocus = {
+                cards : "me"
+            };
+            
+            gContentStreamContainer = new StreamContainer(drawContent);
+            var test2 = new SeqEvent(null, [], gContentStreamContainer);
+            var test = new SeqEvent(null, [], gContentStreamContainer);
+            var battleTest = new BattleEvent(null, gHumans, [new Human("enermy", "怪物"), new Human("enermy", "怪物")], gBatlleHuman, drawBattle, drawBattleContent);
+            // test2.push(test);
+            // test2.push(test);
+            // test.push(new ChatEvent(null, "test", gContentStreamContainer));
+            test.push(battleTest);
+            
+            gStates = {
+                event : test
+            };
+        }
+
+        function utilStringCenter(str, width) {
+            var ret = str;
+            for (var i = 0; i < (width - str.length) / 2; i ++)
+                ret = "&nbsp" + ret + "&nbsp";
+            return ret;
+        }
+        function drawBattle() {
+            $("#battle-human-table").html("");
+            var s = "";
+            function generateString(human) {
+                var s = "";
+                s += '<tr>';
+                s += '<td class="col-xs-2">' + human.showName() + '</td>';
+                s += '<td class="col-xs-1">' + human.pow.toString() + '</td>';
+                s += '<td class="col-xs-1">' + human.dex.toString() + '</td>';
+                s += '<td class="col-xs-1">' + human.speed.toString() + '</td>';
+                s += '<td class="col-xs-1">' + human.hp.toString() + '</td>';
+                s += '<td class="col-xs-1">' + human.mp.toString() + '</td>';
+                s += '<td class="col-xs-1">' + human.exp.toString() + '</td>';
+                s += '</tr>';
+                return s;
+            }
+            for (var i = 0; i < gBatlleHuman["human"].length; i ++) {
+                s += generateString(gBatlleHuman["human"][i])
+            }
+            for (var i = 0; i < gBatlleHuman["enermy"].length; i ++) {
+                s += generateString(gBatlleHuman["enermy"][i])
+            }
+            $("#battle-human-table").html(s);
+        }
+
+        function drawBattleContent(sentences) {
+            $("#battle-content-table").html("");
+            var s = "";
+            for (var i = 0; i < sentences.length; i ++) {
+                var content = sentences[i];
+                s += '<tr><td>' + content + '</td></tr>';
+            }
+            $("#battle-content-table").html(s);
+        }
+
+        function drawContent(sentences) {
+            $("#content-table").html("");
+            var s = "";
+            for (var i = 0; i < sentences.length; i ++) {
+                var content = sentences[i];
+                s += '<tr><td>' + content + '</td></tr>';
+            }
+            $("#content-table").html(s);
+        }
+
+        
+
+        function drawCards(name) {
+            $("#cards-btn-group").html("");
+
+            for (var i = 0; i < gHumans[name].cards.length; i ++) {
+                var j = gHumans[name].cards[i];
+                var s = '';
+                var content = j.toString();
+                s += '<button type="button" class="btn btn-default btn-lg">';
+                s +=    content;
+                s += '</button>';
+                $("#cards-btn-group").append(s);
+            }
+        }
+ 
+        function drawHuman() {
+            $("#human-selection-container").html("");
+            var s = '<div class="btn-group">';
+            
+            for (var i in gHumans) {
+
+                if (gFocus["cards"] == gHumans[i].name) {
+                    s += '<button type="button" class="btn btn-success btn-human-selection" btn-id="' +  gHumans[i].name + '">' + gHumans[i].showName() + '</button>';
+                    drawCards(gHumans[i].name);
+                } else 
+                s += '<button type="button" class="btn btn-default btn-human-selection" btn-id="' +  gHumans[i].name + '">' + gHumans[i].showName() + '</button>';
+            }
+            s += '</div>';
+            $("#human-selection-container").html(s);
+            $(".btn-human-selection").click(function() {
+                gFocus["cards"] = $(this).attr("btn-id");
+                drawHuman();
+            });
+        }
+
+        window.setInterval(function(){
+            if (gStates["event"] != null)
+                gStates["event"] = gStates["event"].execute();
+            else {
+
+            }
+        }, 1000);
+   
+
+    })();
+
+</script>
