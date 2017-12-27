@@ -25,6 +25,25 @@ Card1.prototype = {
     },
     description : function() {
         return "用力砍人造成" + this.data["damage"].toString() + "伤害";
+    },
+    canUse : function(myself, teammates, enermys) {
+        for (var i = 0; i < enermys.length; i ++)
+            if (enermys[i].hp > 0)
+                return enermys[i];
+        return null;
+    },
+    influence : function(target) {
+        var dmg = this.data["damage"];
+        if (target.sheild >= dmg) {
+            target.sheild -= dmg;
+            dmg = 0;
+        } else {
+            dmg -= target.sheild;
+            target.sheild = 0;
+        }
+
+        target.hp = Math.max(0, target.hp - dmg);
+        return "from攻击了target 造成" +this.data["damage"] + "伤害" ;
     }
 };
 
@@ -42,6 +61,13 @@ Card2.prototype = {
     },
     description : function() {
         return "用力防守" + this.data["damage"].toString() + "格挡";
+    },
+    canUse : function(myself, teammates, enermys) {
+        return myself;
+    },
+    influence : function(target) {
+        target.sheild += this.data["sheild"];
+        return "from防御！！";
     }
 };
     

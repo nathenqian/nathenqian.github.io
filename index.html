@@ -53,7 +53,7 @@
                             <table class="table table-fixed">
                                 <thead>
                                     <tr>
-                                        <th class="col-xs-2">姓名</th><th class="col-xs-1">力量</th><th class="col-xs-1">敏捷</th><th class="col-xs-1">速度</th><th class="col-xs-1">HP</th><th class="col-xs-1">MP</th><th class="col-xs-1">EXP</th>
+                                        <th class="col-xs-2">姓名</th><th class="col-xs-1">力量</th><th class="col-xs-1">敏捷</th><th class="col-xs-1">速度</th><th class="col-xs-1">HP</th><th class="col-xs-1">格挡</th><th class="col-xs-1">MP</th><th class="col-xs-1">EXP</th>
                                     </tr>
                                 </thead>
                                 <tbody id = "battle-human-table">
@@ -90,9 +90,11 @@
             };
             
             gContentStreamContainer = new StreamContainer(drawContent);
-            var test2 = new SeqEvent(null, [], gContentStreamContainer);
-            var test = new SeqEvent(null, [], gContentStreamContainer);
-            var battleTest = new BattleEvent(null, gHumans, [new Human("enermy", "怪物"), new Human("enermy", "怪物")], gBatlleHuman, drawBattle, drawBattleContent);
+            var test2 = new SeqEvent(null, []);
+            var test = new SeqEvent(null, []);
+            var chat1 = new ChatEvent(null, "chat1", gContentStreamContainer);
+            var chat2 = new ChatEvent(null, "chat2", gContentStreamContainer);
+            var battleTest = new BattleEvent(null, gHumans, [new Human("enermy", "怪物"), new Human("enermy", "怪物")], gBatlleHuman, drawBattle, drawBattleContent, chat1, chat2);
             // test2.push(test);
             // test2.push(test);
             // test.push(new ChatEvent(null, "test", gContentStreamContainer));
@@ -120,6 +122,7 @@
                 s += '<td class="col-xs-1">' + human.dex.toString() + '</td>';
                 s += '<td class="col-xs-1">' + human.speed.toString() + '</td>';
                 s += '<td class="col-xs-1">' + human.hp.toString() + '</td>';
+                s += '<td class="col-xs-1">' + human.sheild.toString() + '</td>';
                 s += '<td class="col-xs-1">' + human.mp.toString() + '</td>';
                 s += '<td class="col-xs-1">' + human.exp.toString() + '</td>';
                 s += '</tr>';
