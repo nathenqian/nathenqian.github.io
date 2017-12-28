@@ -1,5 +1,6 @@
-function Human(name, showname = "", exp = 0, hp = 40, mp = 3, pow = 0, dex = 0, speed = 10, eachTurnCards = 2, sheild = 0) {
+function Human(name, showname = "", exp = 2, hp = 40, mp = 3, pow = 0, dex = 0, speed = 10, eachTurnCards = 2, sheild = 0) {
     this.cards = [];
+    this.undeterminedCards = [];
     this.name = name;
     this.exp = exp;
     this.hp = hp;
@@ -10,11 +11,13 @@ function Human(name, showname = "", exp = 0, hp = 40, mp = 3, pow = 0, dex = 0, 
     this.showname = showname;   
     this.sheild = sheild;
     this.eachTurnCards = eachTurnCards;
+    this.ref = this;
     if (name == "me") {
-        this.cards.push(new Card1(5), new Card2(5));
+        this.cards.push(new Card1(100), new Card2(20));
+        this.undeterminedCards.push(new Card1(100), new Card2(20));
         this.speed = 20;
     } else {
-        this.cards.push(new Card1(2), new Card2(2));
+        this.cards.push(new Card1(100), new Card2(2));
     }
 }
 
@@ -27,7 +30,9 @@ function utilStringCenter(str, width) {
 
 Human.prototype = {
     deepcopy : function () {
-        var ret = new Human(this.name, this.showname, this.exp, this.hp, this.mp, this.pow, this.dex, this.speed, this.eachTurnCards, this.sheild);
+        // var ret = new Human(this.name, this.showname, this.exp, this.hp, this.mp, this.pow, this.dex, this.speed, this.eachTurnCards, this.sheild);
+        // ret.ref = this.ref;
+        var ret = Object.create(this);
         return ret;
     },
     showName : function() {
@@ -52,5 +57,15 @@ Human.prototype = {
             // alert(this.cards[id].description());
         }
         return cards;
+    },
+    expGet : function (exps) {
+        this.exp += exps;
+    },
+    isAlive : function() {
+        return this.hp > 0;
+    },
+    addUndertermined : function(card) {
+        // alert(card.toString());
+        this.undeterminedCards.push(card);
     }
 };

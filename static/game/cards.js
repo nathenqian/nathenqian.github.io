@@ -32,7 +32,7 @@ Card1.prototype = {
                 return enermys[i];
         return null;
     },
-    influence : function(target) {
+    influence : function(myself, target) {
         var dmg = this.data["damage"];
         if (target.sheild >= dmg) {
             target.sheild -= dmg;
@@ -65,7 +65,7 @@ Card2.prototype = {
     canUse : function(myself, teammates, enermys) {
         return myself;
     },
-    influence : function(target) {
+    influence : function(myself, target) {
         target.sheild += this.data["sheild"];
         return "from防御！！";
     }

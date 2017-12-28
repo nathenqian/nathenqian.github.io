@@ -2,6 +2,7 @@
 <script src="static/game/cards.js"></script>
 <script src="static/game/events.js"></script>
 <script src="static/game/humans.js"></script>
+<script src="static/js/bootstrap.min.js"></script>
 <!-- <script src="static/game/utils.js"></script> -->
 <link href="static/css/bootstrap.min.css" rel="stylesheet"/>
 
@@ -12,6 +13,8 @@
         <title>hello man!</title>
     </head>
     <body>
+
+
         <div id="wrap">
             <div class="container">
                 <nav class="navbar navbar-default" role="navigation">
@@ -40,6 +43,7 @@
                         </div>
                     </div>
                     <div class="col-md-3" id="frame-center">
+
                         <div class="panel panel-default pre-scrollable" style="min-height: 300px">
                             <table class="table table-fixed">
                                 <tbody id = "content-table">
@@ -93,14 +97,30 @@
             var test = new SeqEvent(null, []);
             var chat1 = new ChatEvent(null, "chat1", gContentStreamContainer);
             var chat2 = new ChatEvent(null, "chat2", gContentStreamContainer);
-            var battleTest = new BattleEvent(null, gHumans, [new Human("enermy", "怪物"), new Human("enermy", "怪物")], gBatlleHuman, drawBattle, drawBattleContent, chat1, chat2);
+            
+            var seqEvent = new SeqEvent(null, []);
+            var exp1 = new ExpEvent(null, gBatlleHuman);
+            var cardGetEvent = new CardGetEvent(null, {me : [{prob:0.5, card:new Card1(100)}], gf : [{prob:0.5, card:new Card1(100)}]}, gHumans, drawHuman);
+            seqEvent.push(exp1);
+            seqEvent.push(cardGetEvent);
+            
+
+            var battleTest = new BattleEvent(null, gHumans, [new Human("enermy", "怪物"), new Human("enermy", "怪物")], gBatlleHuman, drawBattle, drawBattleContent, seqEvent, chat2);
+
+            test.push(battleTest);
+            var testIndex = [0];
+
+
+            var exprEvent = new ExprEvent(null, function(){ testIndex[0] += 1; return testIndex < 2;});
+            var loopTest = new LoopEvent(null, exprEvent, test);
+            // alert(LoopEvent.prototype);
             // test2.push(test);
             // test2.push(test);
             // test.push(new ChatEvent(null, "test", gContentStreamContainer));
-            test.push(battleTest);
+            
             
             gStates = {
-                event : test
+                event : loopTest
             };
         }
 
@@ -165,10 +185,30 @@
                 var j = gHumans[name].cards[i];
                 var s = '';
                 var content = j.toString();
-                s += '<button type="button" class="btn btn-default btn-lg">';
+                var desc = j.description();
+                s += '<button class="btn btn-success btn-lg" type="button" data-toggle="collapse" aria-expanded="true" aria-controls="cards-id'+i.toString()+'" data-target="#cards-id'+i.toString()+'">';
                 s +=    content;
                 s += '</button>';
+
+                s += '<div class="collapse" id="cards-id'+i.toString()+'">';
+                    s += desc;
+                s += '</div>';
+                // alert(s);
                 $("#cards-btn-group").append(s);
+            }
+            for (var i = 0; i < gHumans[name].undeterminedCards.length; i ++) {
+                var j = gHumans[name].undeterminedCards[i];
+                var s = '';
+                var content = j.toString();
+                var desc = j.description();
+                s += '<button class="btn btn-default btn-lg" type="button" data-toggle="collapse" aria-expanded="true" aria-controls="undetermined-cards-id'+i.toString()+'" data-target="#undetermined-cards-id'+i.toString()+'">';
+                s +=  content;
+                s += '</button>';
+
+                s += '<div class="collapse" id="undetermined-cards-id'+i.toString()+'">';
+                    s += desc;
+                s += '</div>';
+                $("#cards-btn-group").append(s);   
             }
         }
  
@@ -193,11 +233,13 @@
         }
 
         window.setInterval(function(){
-            if (gStates["event"] != null)
+            // alert(gStates["event"]);
+            // if (gStates["event"] != null)
                 gStates["event"] = gStates["event"].execute();
-            else {
+                // alert(gStates["event"].execute);
+            // else {
 
-            }
+            // }
         }, 1000);
    
 
