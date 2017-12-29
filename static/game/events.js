@@ -335,3 +335,42 @@ CardGetEvent.prototype.execute = function() {
 CardGetEvent.prototype.finish = function() {
     return this.pop();
 }
+
+var gBtnId = 0;
+function BtnClickEvent(parent, events, container) { 
+    EventBase.call(this, parent);
+    this.clickId = [undefined];
+    var datas = this.clickId;
+    this.events = events;
+    this.container = container;
+    var s = "";
+    for (var i = 0; i < events.length; i ++) {
+        s += '<div class="btn btn-default" data-id="'+i.toString()+'"id="btn-click-event-btn' + gBtnId.toString() + '">' + events[i]["desc"] + '</div>';
+        events[i].parent = this;
+        gBtnId += 1;
+    }
+    container.push(s);
+    for (var i = 0; i < events.length; i ++) {
+        $('#btn-click-event-btn' + (gBtnId - events.length + i).toString()).click(function() {
+            datas[0] = Number($(this).attr("data-id"));
+        });
+    }
+        
+
+    
+} 
+BtnClickEvent.prototype = Object.create(EventBase.prototype);
+BtnClickEvent.prototype.constructor = BtnClickEvent;
+
+BtnClickEvent.prototype.execute = function() {
+    console.log("btn click execute");
+    if (this.clickId[0] != undefined) {
+        var id = this.clickId[0];
+        return this.events[id]["event"].execute();
+    } else
+    return this;
+};
+BtnClickEvent.prototype.finish = function() {
+    return this.pop();
+};
+

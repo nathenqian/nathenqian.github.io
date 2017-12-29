@@ -31,11 +31,11 @@
                 </nav>
                 <div class="row">
                     <div class="col-md-3" id="frame-left">
-                        <div class = "container" id = "human-selection-container">
+                        <div id = "human-selection-container">
 
                         </div>
 
-                        <div class = "container">
+                        <div>
                             <h4>卡牌</h4>
                             <div class="btn-group-vertical" id="cards-btn-group">
 
@@ -86,7 +86,8 @@
         init();
         drawHuman();
         function init() {
-            gHumans = {"me" : new Human("me", "你"), "gf" : new Human("gf", "陌生的女神官")};
+            gHumans = {"me" : new Human("me", "你"), "gf" : new Human("gf", "陌生的女神官"),
+            "test" : new Human("test", "test"),"test2" : new Human("test2", "test2")};
             gBatlleHuman = {};
             gFocus = {
                 cards : "me"
@@ -111,8 +112,14 @@
             var testIndex = [0];
 
 
-            var exprEvent = new ExprEvent(null, function(){ testIndex[0] += 1; return testIndex < 2;});
+            var exprEvent = new ExprEvent(null, function(){ testIndex[0] += 1; return testIndex < 5;});
             var loopTest = new LoopEvent(null, exprEvent, test);
+
+            
+            var btnClickEvent = new BtnClickEvent(null, [{desc:"test1",event:loopTest},{desc:"test2", event:chat1}], gContentStreamContainer);
+
+            var seqEvent2 = new SeqEvent(null, []);
+            seqEvent2.push(btnClickEvent);
             // alert(LoopEvent.prototype);
             // test2.push(test);
             // test2.push(test);
@@ -120,7 +127,7 @@
             
             
             gStates = {
-                event : loopTest
+                event : seqEvent2
             };
         }
 
@@ -206,10 +213,25 @@
                 s += '</button>';
 
                 s += '<div class="collapse" id="undetermined-cards-id'+i.toString()+'">';
-                    s += desc;
+                    s += desc + "<br>";
+                    s += '<div class = "btn btn-success undetermined-cards-succ-btn" card-id="' + i.toString() + '">';
+                        s += '获取';
+                    s += '</div>';
+                    s += '<div class = "btn btn-default undetermined-cards-discard-btn" card-id="' + i.toString() + '">';
+                        s += '丢弃';
+                    s += '</div>';
                 s += '</div>';
                 $("#cards-btn-group").append(s);   
             }
+            $(".undetermined-cards-succ-btn").click(function() {
+                gHumans[gFocus["cards"]].acceptCard(Number($(this).attr("card-id")));
+                drawCards(gFocus["cards"]);
+            });
+            $(".undetermined-cards-discard-btn").click(function() {
+                gHumans[gFocus["cards"]].discardCard(Number($(this).attr("card-id")));
+                drawCards(gFocus["cards"]);
+            });
+
         }
  
         function drawHuman() {

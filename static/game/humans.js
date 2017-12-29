@@ -67,5 +67,25 @@ Human.prototype = {
     addUndertermined : function(card) {
         // alert(card.toString());
         this.undeterminedCards.push(card);
+    },
+    discardCard : function(id, own = false) {
+        var cards = this.undeterminedCards;
+        if (own == true) {
+            cards = this.cards;
+            // alert("wrong");
+        }
+        // alert(cards.length);
+        // alert(id);
+        // alert(cards[id]);
+        var temp = cards[cards.length - 1];
+        cards[cards.length - 1] = cards[id];
+        cards[id] = temp;
+        //alert(cards[])
+        cards.pop();
+    },
+    acceptCard : function(id) {
+        this.cards.push(this.undeterminedCards[id]);
+        // alert(this.undeterminedCards[id].description());
+        this.discardCard(id);
     }
 };
