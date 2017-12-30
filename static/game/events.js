@@ -13,19 +13,21 @@ EventBase.prototype.reset = function() {
 }
 
 
-function StreamContainer(draw, lines = 100) {
+function StreamContainer(draw, pop, lines = 100) {
     this.draw = draw;
     this.sentences = [];
     this.lines = lines;
+    this.pop = pop;
 }
 
  
 StreamContainer.prototype.push = function(content) {
     if (this.sentences.length > this.lines) {
         this.sentences.shift();
+        this.pop();
     }
     this.sentences.push(content);
-    this.draw(this.sentences);
+    this.draw(content);
 }
 
 
@@ -65,9 +67,9 @@ ExpEvent.prototype.execute = function() {
     return this.pop();
 }
 
-function BattleDraw(imageDraw, streamDraw) {
+function BattleDraw(imageDraw, streamDraw, streamPop) {
     this.imageDraw = imageDraw;
-    this.streamDraw = new StreamContainer(streamDraw, 10);
+    this.streamDraw = new StreamContainer(streamDraw, streamPop, 10);
 }
 
 BattleDraw.prototype.push = function(content) {
@@ -76,9 +78,10 @@ BattleDraw.prototype.push = function(content) {
 BattleDraw.prototype.update = function() {
     this.imageDraw();
 }
-function BattleEvent(parent, gHumans, enermy, gBatlleHuman, imageContainerDraw, streamContainerDraw, succEvent, failEvent) {
+function BattleEvent(parent, gHumans, enermy, gBatlleHuman, battleDraw, succEvent, failEvent) {
     EventBase.call(this, parent);
     this.battle = gBatlleHuman;
+    this.turn = 0;
     this.resetFunc = function() {
         gBatlleHuman["human"] = [];
         gBatlleHuman["enermy"] = [];
@@ -100,11 +103,10 @@ function BattleEvent(parent, gHumans, enermy, gBatlleHuman, imageContainerDraw, 
         this.turnList.sort(function(a, b) {
             return -a["speed"] + b["speed"];
         });
-        this.turn = 0;
     }
     this.resetFunc();
 
-    this.battleDraw = new BattleDraw(imageContainerDraw, streamContainerDraw);
+    this.battleDraw = battleDraw;
     this.succEvent = succEvent;
     this.failEvent = failEvent;
     this.failEvent.parent = this;
@@ -125,18 +127,21 @@ BattleEvent.prototype = Object.create(EventBase.prototype);
 BattleEvent.prototype.constructor = BattleEvent;
 
 BattleEvent.prototype.execute = function() {
-    this.battleDraw.update();
     this.turn += 1;
     // alert(this.turn);
     if (this.turn == 1) {
+        this.resetFunc();
+        this.battleDraw.update();
         this.battleDraw.push("start battle!");
         return this;
     }
     else {
+        this.battleDraw.update();
         if (BattleEventAllKilled(this.battle["human"])) {
             return this.failEvent.execute();
         } 
         if (BattleEventAllKilled(this.battle["enermy"])) {
+            this.battleDraw.push("战斗结束!");
             return this.succEvent.execute();
         }
 
@@ -188,6 +193,7 @@ BattleEvent.prototype.finish = function() {
 }
 BattleEvent.prototype.reset = function() {
     this.resetFunc();
+    this.turn = 0;
 }
 
 function SeqEvent(parent, events) {
@@ -199,8 +205,15 @@ function SeqEvent(parent, events) {
 SeqEvent.prototype = Object.create(EventBase.prototype);
 SeqEvent.prototype.constructor = SeqEvent;
 SeqEvent.prototype.push = function(event) {
-    this.events.push(event);
-    event.parent = this;
+    if (event instanceof Array) {
+        for (var i = 0; i < event.length; i ++) {
+            this.events.push(event[i]);
+            event[i].parent = this;
+        }
+    } else {
+        this.events.push(event);
+        event.parent = this;
+    }
 }
 SeqEvent.prototype.execute = function() {
     console.log("SeqEvent exec");
@@ -209,7 +222,7 @@ SeqEvent.prototype.execute = function() {
     return this.events[this.exeIndex].execute();
 }
 SeqEvent.prototype.finish = function() {
-    console.log("SeqEvent fin");
+    console.log("SeqEvent fin " + this.exeIndex.toString());
     this.exeIndex += 1;
     // alert(this.exeIndex);
     if (this.exeIndex == this.events.length) {
@@ -299,11 +312,10 @@ LoopEvent.prototype.finish = function(ret) {
     
 }
 
-function CardGetEvent(parent, cardsList, gHumans, drawHuman) {
+function CardGetEvent(parent, cardsList, gHumans) {
     EventBase.call(this, parent);
     this.cardsList = cardsList;
     this.gHumans = gHumans;
-    this.drawHuman = drawHuman;
 }
 CardGetEvent.prototype = Object.create(EventBase.prototype);
 CardGetEvent.prototype.constructor = CardGetEvent;
@@ -328,7 +340,8 @@ CardGetEvent.prototype.execute = function() {
         }
     }
     if (redraw) 
-        this.drawHuman();
+        for (var i in this.gHumans)
+            {this.gHumans[i].drawHuman(); break;}
     return this.pop();
 }
 
@@ -340,37 +353,79 @@ var gBtnId = 0;
 function BtnClickEvent(parent, events, container) { 
     EventBase.call(this, parent);
     this.clickId = [undefined];
-    var datas = this.clickId;
     this.events = events;
     this.container = container;
-    var s = "";
+    this.firstExec = 0;
     for (var i = 0; i < events.length; i ++) {
-        s += '<div class="btn btn-default" data-id="'+i.toString()+'"id="btn-click-event-btn' + gBtnId.toString() + '">' + events[i]["desc"] + '</div>';
-        events[i].parent = this;
-        gBtnId += 1;
+        this.events[i].parent = this;
     }
-    container.push(s);
-    for (var i = 0; i < events.length; i ++) {
-        $('#btn-click-event-btn' + (gBtnId - events.length + i).toString()).click(function() {
-            datas[0] = Number($(this).attr("data-id"));
-        });
-    }
-        
-
-    
 } 
 BtnClickEvent.prototype = Object.create(EventBase.prototype);
 BtnClickEvent.prototype.constructor = BtnClickEvent;
 
 BtnClickEvent.prototype.execute = function() {
     console.log("btn click execute");
+    if (this.firstExec == 0) {
+        var datas = this.clickId;
+        this.firstExec = 1;
+        var s = "";
+        var idLeft = gBtnId;
+        for (var i = 0; i < this.events.length; i ++) {
+            s += '<div class="btn btn-default" data-id="'+i.toString()+'" id="btn-click-event-btn' + gBtnId.toString() + '">' + this.events[i]["desc"] + '</div>';
+            gBtnId += 1;
+        }
+        this.container.push(s);
+        for (var i = 0; i < this.events.length; i ++) {
+            $('#btn-click-event-btn' + (gBtnId - this.events.length + i).toString()).attr("data-id-left", idLeft);
+            $('#btn-click-event-btn' + (gBtnId - this.events.length + i).toString()).attr("data-id-right", gBtnId);
+
+            $('#btn-click-event-btn' + (gBtnId - this.events.length + i).toString()).click(function() {
+                datas[0] = Number($(this).attr("data-id"));
+                var l = Number($(this).attr("data-id-left"));
+                var r = Number($(this).attr("data-id-right"));
+                $(this).addClass("btn-success");
+                for (var i = l; i < r; i ++)
+                    $('#btn-click-event-btn' + (i).toString()).unbind("click");
+            });
+        }
+    }
     if (this.clickId[0] != undefined) {
         var id = this.clickId[0];
         return this.events[id]["event"].execute();
     } else
-    return this;
+        return this;
 };
 BtnClickEvent.prototype.finish = function() {
+    return this.pop();
+};
+BtnClickEvent.prototype.reset = function() {
+    this.firstExec = 0;
+};
+
+
+function PeopleChangeEvent(parent, gHumans, changeName, opt, human = undefined) {
+    EventBase.call(this, parent);
+    this.changeName = changeName;
+    this.gHumans = gHumans;
+    this.opt = opt;
+    this.human = human;
+}
+PeopleChangeEvent.prototype = Object.create(EventBase.prototype);
+PeopleChangeEvent.prototype.constructor = PeopleChangeEvent;
+
+PeopleChangeEvent.prototype.execute = function() {
+    
+    if (this.opt == 0) {
+        if (this.changeName in this.gHumans) {
+            delete this.gHumans[this.changeName];
+        }
+    } else {
+        if (!(this.changeName in this.gHumans)) {
+            this.gHumans[this.changeName] = Object.create(this.human);
+        }
+    }
+
+    this.human.drawHuman();
     return this.pop();
 };
 

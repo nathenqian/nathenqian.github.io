@@ -2,6 +2,7 @@
 <script src="static/game/cards.js"></script>
 <script src="static/game/events.js"></script>
 <script src="static/game/humans.js"></script>
+<script src="static/game/chapter0.js"></script>
 <script src="static/js/bootstrap.min.js"></script>
 <!-- <script src="static/game/utils.js"></script> -->
 <link href="static/css/bootstrap.min.css" rel="stylesheet"/>
@@ -50,6 +51,13 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        <div class="panel panel-default pre-scrollable" style="min-height: 300px">
+                            <table class="table table-fixed">
+                                <tbody id = "map-table">
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                     <div class="col-md-6" id="frame-right">
                         <div class="panel panel-default pre-scrollable" style="min-height: 500px">
@@ -82,52 +90,55 @@
 <script type="text/javascript">
 
     (function() {
-        var gHumans, gFocus, gContentStreamContainer, gBattleStreamContainer, gBatlleHuman;
+        var gHumans, gFocus, gContentStreamContainer, gBattleStreamContainer, gBatlleHuman,
+        gBatlleDraw;
         init();
         drawHuman();
         function init() {
-            gHumans = {"me" : new Human("me", "你"), "gf" : new Human("gf", "陌生的女神官"),
-            "test" : new Human("test", "test"),"test2" : new Human("test2", "test2")};
+            gHumans = {"me" : new Human(drawHuman, "me", "你")};
             gBatlleHuman = {};
             gFocus = {
                 cards : "me"
             };
             
-            gContentStreamContainer = new StreamContainer(drawContent);
-            var test2 = new SeqEvent(null, []);
-            var test = new SeqEvent(null, []);
-            var chat1 = new ChatEvent(null, "chat1", gContentStreamContainer);
-            var chat2 = new ChatEvent(null, "chat2", gContentStreamContainer);
+            gContentStreamContainer = new StreamContainer(drawContent, contentPop);
+            gBatlleDraw = new BattleDraw(drawBattle, drawBattleContent, battleContentPop);
+            // var test2 = new SeqEvent(null, []);
+            // var test = new SeqEvent(null, []);
+            // var chat1 = new ChatEvent(null, "chat1", gContentStreamContainer);
+            // var chat2 = new ChatEvent(null, "chat2", gContentStreamContainer);
             
-            var seqEvent = new SeqEvent(null, []);
-            var exp1 = new ExpEvent(null, gBatlleHuman);
-            var cardGetEvent = new CardGetEvent(null, {me : [{prob:0.5, card:new Card1(100)}], gf : [{prob:0.5, card:new Card1(100)}]}, gHumans, drawHuman);
-            seqEvent.push(exp1);
-            seqEvent.push(cardGetEvent);
+            // var seqEvent = new SeqEvent(null, []);
+            // var exp1 = new ExpEvent(null, gBatlleHuman);
+            // var cardGetEvent = new CardGetEvent(null, {me : [{prob:0.5, card:new Card1(100)}], gf : [{prob:0.5, card:new Card1(100)}]}, gHumans, drawHuman);
+            // seqEvent.push(exp1);
+            // seqEvent.push(cardGetEvent);
             
 
-            var battleTest = new BattleEvent(null, gHumans, [new Human("enermy", "怪物"), new Human("enermy", "怪物")], gBatlleHuman, drawBattle, drawBattleContent, seqEvent, chat2);
+            // var battleTest = new BattleEvent(null, gHumans, [new Human("enermy", "怪物"), new Human("enermy", "怪物")], gBatlleHuman, drawBattle, drawBattleContent, battleContentPop, seqEvent, chat2);
 
-            test.push(battleTest);
-            var testIndex = [0];
+            // test.push(battleTest);
+            // var testIndex = [0];
 
 
-            var exprEvent = new ExprEvent(null, function(){ testIndex[0] += 1; return testIndex < 5;});
-            var loopTest = new LoopEvent(null, exprEvent, test);
+            // var exprEvent = new ExprEvent(null, function(){ testIndex[0] += 1; return testIndex < 5;});
+            // var loopTest = new LoopEvent(null, exprEvent, test);
 
+            // var btnClickEvent2 = new BtnClickEvent(null, [{desc:"test1",event:loopTest},{desc:"test2", event:chat1}], gContentStreamContainer);
             
-            var btnClickEvent = new BtnClickEvent(null, [{desc:"test1",event:loopTest},{desc:"test2", event:chat1}], gContentStreamContainer);
+            // var btnClickEvent = new BtnClickEvent(null, [{desc:"test1",event:loopTest},{desc:"test2", event:btnClickEvent2}], gContentStreamContainer);
 
-            var seqEvent2 = new SeqEvent(null, []);
-            seqEvent2.push(btnClickEvent);
+
+            // var seqEvent2 = new SeqEvent(null, []);
+            // seqEvent2.push(btnClickEvent);
             // alert(LoopEvent.prototype);
             // test2.push(test);
             // test2.push(test);
             // test.push(new ChatEvent(null, "test", gContentStreamContainer));
-            
+            var start = chapter0GStates(gHumans, gFocus, gContentStreamContainer, gBatlleDraw, gBatlleHuman);
             
             gStates = {
-                event : seqEvent2
+                event : start
             };
         }
 
@@ -163,27 +174,33 @@
             $("#battle-human-table").html(s);
         }
 
-        function drawBattleContent(sentences) {
-            $("#battle-content-table").html("");
+        function drawBattleContent(content) {
+            // $("#battle-content-table").html("");
             var s = "";
-            for (var i = 0; i < sentences.length; i ++) {
-                var content = sentences[i];
+            // for (var i = 0; i < sentences.length; i ++) {
+                // var content = sentences[i];
                 s += '<tr><td>' + content + '</td></tr>';
-            }
-            $("#battle-content-table").html(s);
+            // }
+            $("#battle-content-table").append(s);
+        }
+        function battleContentPop() {
+            $("#battle-content-table tr:first-child").remove();
         }
 
-        function drawContent(sentences) {
-            $("#content-table").html("");
+        function drawContent(content) {
+            // $("#content-table").html("");
             var s = "";
-            for (var i = 0; i < sentences.length; i ++) {
-                var content = sentences[i];
+            // for (var i = 0; i < sentences.length; i ++) {
+                // var content = sentences[sentences.length - 1];
                 s += '<tr><td>' + content + '</td></tr>';
-            }
-            $("#content-table").html(s);
+            // }
+            $("#content-table").append(s);
         }
 
-        
+        function contentPop() {
+            $("#content-table tr:first-child").remove();
+        }
+
 
         function drawCards(name) {
             $("#cards-btn-group").html("");

@@ -1,4 +1,4 @@
-function Human(name, showname = "", exp = 2, hp = 40, mp = 3, pow = 0, dex = 0, speed = 10, eachTurnCards = 2, sheild = 0) {
+function Human(drawHuman, name, showname = "", exp = 2, hp = 40, mp = 3, pow = 0, dex = 0, speed = 10, eachTurnCards = 2, sheild = 0, cards = undefined) {
     this.cards = [];
     this.undeterminedCards = [];
     this.name = name;
@@ -12,6 +12,13 @@ function Human(name, showname = "", exp = 2, hp = 40, mp = 3, pow = 0, dex = 0, 
     this.sheild = sheild;
     this.eachTurnCards = eachTurnCards;
     this.ref = this;
+    this.drawHuman = drawHuman;
+    if (cards != undefined) {
+        this.cards = [];
+        for (var i = 0; i < cards.length; i ++) {
+            this.cards.push(Object.create(cards[i]));
+        }
+    } else 
     if (name == "me") {
         this.cards.push(new Card1(100), new Card2(20));
         this.undeterminedCards.push(new Card1(100), new Card2(20));
@@ -67,6 +74,7 @@ Human.prototype = {
     addUndertermined : function(card) {
         // alert(card.toString());
         this.undeterminedCards.push(card);
+        this.drawHuman();
     },
     discardCard : function(id, own = false) {
         var cards = this.undeterminedCards;
@@ -82,10 +90,12 @@ Human.prototype = {
         cards[id] = temp;
         //alert(cards[])
         cards.pop();
+        this.drawHuman();
     },
     acceptCard : function(id) {
         this.cards.push(this.undeterminedCards[id]);
         // alert(this.undeterminedCards[id].description());
         this.discardCard(id);
+        this.drawHuman();
     }
 };
