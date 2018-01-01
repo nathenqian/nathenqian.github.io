@@ -1,4 +1,5 @@
-function Human(drawHuman, name, showname = "", exp = 2, hp = 40, mp = 3, pow = 0, dex = 0, speed = 10, eachTurnCards = 2, sheild = 0, cards = undefined) {
+
+function Human(contentContainer, drawHuman, name, showname = "", cards = undefined, exp = 0, hp = 40, mp = 3, pow = 0, dex = 0, speed = 10, eachTurnCards = 2, sheild = 0, level = 1) {
     this.cards = [];
     this.undeterminedCards = [];
     this.name = name;
@@ -13,6 +14,9 @@ function Human(drawHuman, name, showname = "", exp = 2, hp = 40, mp = 3, pow = 0
     this.eachTurnCards = eachTurnCards;
     this.ref = this;
     this.drawHuman = drawHuman;
+    this.level = level;
+    this.contentContainer = contentContainer;
+
     if (cards != undefined) {
         this.cards = [];
         for (var i = 0; i < cards.length; i ++) {
@@ -20,11 +24,14 @@ function Human(drawHuman, name, showname = "", exp = 2, hp = 40, mp = 3, pow = 0
         }
     } else 
     if (name == "me") {
-        this.cards.push(new Card1(100), new Card2(20));
-        this.undeterminedCards.push(new Card1(100), new Card2(20));
-        this.speed = 20;
-    } else {
-        this.cards.push(new Card1(100), new Card2(2));
+        this.cards.push(new Card1(5), new Card1(5), new Card2(3));
+        // this.undeterminedCards.push(new Card1(100), new Card2(20));
+        this.speed = 10;
+    }
+
+    if (name in expFuncs) {
+        this.expFunc = expFuncs[name];
+        this.expFunc.execute(this);
     }
 }
 
@@ -67,6 +74,7 @@ Human.prototype = {
     },
     expGet : function (exps) {
         this.exp += exps;
+        this.expFunc.execute(this);
     },
     isAlive : function() {
         return this.hp > 0;
@@ -98,4 +106,69 @@ Human.prototype = {
         this.discardCard(id);
         this.drawHuman();
     }
+};
+
+function ExpBase() {
+
+}
+
+ExpBase.prototype.nextExp = function(human) {
+    
+};
+
+ExpBase.prototype.execute = function(human) {
+    while (1 == 1) {
+        var lv = human.level;
+        var exp = human.exp;
+        var nextExp = this.nextExp(human);    
+        // alert(nextExp);
+        console.log(lv);
+        console.log(exp);
+        console.log(nextExp);
+        if (exp >= nextExp) {
+            human.level += 1;
+            human.exp -= nextExp;
+            this.trigger(human);
+        } else 
+            break;
+    }
+    human.drawHuman(false, true);
+    human.nextExp = this.nextExp(human);
+};
+
+ExpBase.prototype.trigger = function(human) {
+
+};
+
+
+function MeExp() {
+    ExpBase.call(this);
+}
+
+MeExp.prototype = Object.create(ExpBase.prototype);
+MeExp.prototype.constructor = MeExp;
+MeExp.prototype.nextExp = function(human) {
+    return human.level * 10;
+};
+MeExp.prototype.trigger = function(human) {
+    // alert(human.level);
+};
+
+
+function GfExp() {
+    ExpBase.call(this);
+}
+
+GfExp.prototype = Object.create(ExpBase.prototype);
+GfExp.prototype.constructor = GfExp;
+GfExp.prototype.nextExp = function(human) {
+    return human.level * 10;
+};
+GfExp.prototype.trigger = function(human) {
+    // alert(human.level);
+};
+
+var expFuncs = {
+    "me" : new MeExp(),
+    "gf" : new GfExp()
 };

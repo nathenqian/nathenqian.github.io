@@ -142,6 +142,8 @@ BattleEvent.prototype.execute = function() {
         } 
         if (BattleEventAllKilled(this.battle["enermy"])) {
             this.battleDraw.push("战斗结束!");
+            this.expEvent = new ExpEvent(this, this.battle);
+            this.expEvent.execute();
             return this.succEvent.execute();
         }
 

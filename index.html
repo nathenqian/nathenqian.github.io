@@ -41,11 +41,14 @@
                             <div class="btn-group-vertical" id="cards-btn-group">
 
                             </div>
+                            <div id="human-information-div">
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-3" id="frame-center">
 
-                        <div class="panel panel-default pre-scrollable" style="min-height: 300px">
+                        <div class="panel panel-default pre-scrollable" style="min-height: 300px"
+                            id="content-panel">
                             <table class="table table-fixed">
                                 <tbody id = "content-table">
                                 </tbody>
@@ -64,7 +67,15 @@
                             <table class="table table-fixed">
                                 <thead>
                                     <tr>
-                                        <th class="col-xs-2">姓名</th><th class="col-xs-1">力量</th><th class="col-xs-1">敏捷</th><th class="col-xs-1">速度</th><th class="col-xs-1">HP</th><th class="col-xs-1">格挡</th><th class="col-xs-1">MP</th><th class="col-xs-1">EXP</th>
+                                        <th class="col-xs-2">姓名</th>
+                                        <th class="col-xs-1">力量</th>
+                                        <th class="col-xs-1">敏捷</th>
+                                        <!-- <th class="col-xs-1">速度</th> -->
+                                        <th class="col-xs-1">HP</th>
+                                        <th class="col-xs-1">格挡</th>
+                                        <th class="col-xs-1">MP</th>
+                                        <!-- <th class="col-xs-1">EXP</th> -->
+
                                     </tr>
                                 </thead>
                                 <tbody id = "battle-human-table">
@@ -72,7 +83,8 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div class="panel panel-default pre-scrollable" style="min-height: 300px">
+                        <div class="panel panel-default pre-scrollable" style="min-height: 300px"
+                            id="battle-panel">
                             <table class="table table-fixed">
                                 <tbody id = "battle-content-table">
                                 </tbody>
@@ -95,13 +107,14 @@
         init();
         drawHuman();
         function init() {
-            gHumans = {"me" : new Human(drawHuman, "me", "你")};
+            gContentStreamContainer = new StreamContainer(drawContent, contentPop);
+            gHumans = {"me" : new Human(gContentStreamContainer, drawHuman, "me", "你")};
             gBatlleHuman = {};
             gFocus = {
                 cards : "me"
             };
             
-            gContentStreamContainer = new StreamContainer(drawContent, contentPop);
+            
             gBatlleDraw = new BattleDraw(drawBattle, drawBattleContent, battleContentPop);
             // var test2 = new SeqEvent(null, []);
             // var test = new SeqEvent(null, []);
@@ -157,11 +170,11 @@
                 s += '<td class="col-xs-2">' + human.showName() + '</td>';
                 s += '<td class="col-xs-1">' + human.pow.toString() + '</td>';
                 s += '<td class="col-xs-1">' + human.dex.toString() + '</td>';
-                s += '<td class="col-xs-1">' + human.speed.toString() + '</td>';
+                // s += '<td class="col-xs-1">' + human.speed.toString() + '</td>';
                 s += '<td class="col-xs-1">' + human.hp.toString() + '</td>';
                 s += '<td class="col-xs-1">' + human.sheild.toString() + '</td>';
                 s += '<td class="col-xs-1">' + human.mp.toString() + '</td>';
-                s += '<td class="col-xs-1">' + human.exp.toString() + '</td>';
+                // s += '<td class="col-xs-1">' + human.exp.toString() + '</td>';
                 s += '</tr>';
                 return s;
             }
@@ -172,6 +185,7 @@
                 s += generateString(gBatlleHuman["enermy"][i])
             }
             $("#battle-human-table").html(s);
+            $("#battle-panel").scrollTop($("#battle-panel")[0].scrollHeight);
         }
 
         function drawBattleContent(content) {
@@ -195,6 +209,7 @@
                 s += '<tr><td>' + content + '</td></tr>';
             // }
             $("#content-table").append(s);
+            $("#content-panel").scrollTop($("#content-panel")[0].scrollHeight);
         }
 
         function contentPop() {
@@ -251,24 +266,45 @@
 
         }
  
-        function drawHuman() {
-            $("#human-selection-container").html("");
-            var s = '<div class="btn-group">';
-            
-            for (var i in gHumans) {
+        function drawHuman(onlyCards = false, onlyHuman = false) {
+            if (!onlyHuman) {
+                $("#human-selection-container").html("");
+                var s = '<div class="btn-group">';
+                for (var i in gHumans) {
 
-                if (gFocus["cards"] == gHumans[i].name) {
-                    s += '<button type="button" class="btn btn-success btn-human-selection" btn-id="' +  gHumans[i].name + '">' + gHumans[i].showName() + '</button>';
-                    drawCards(gHumans[i].name);
-                } else 
-                s += '<button type="button" class="btn btn-default btn-human-selection" btn-id="' +  gHumans[i].name + '">' + gHumans[i].showName() + '</button>';
+                    if (gFocus["cards"] == gHumans[i].name) {
+                        s += '<button type="button" class="btn btn-success btn-human-selection" btn-id="' +  gHumans[i].name + '">' + gHumans[i].showName() + '</button>';
+                        drawCards(gHumans[i].name);
+                    } else 
+                    s += '<button type="button" class="btn btn-default btn-human-selection" btn-id="' +  gHumans[i].name + '">' + gHumans[i].showName() + '</button>';
+                }
+                s += '</div>';
+                $("#human-selection-container").html(s);
+                $(".btn-human-selection").click(function() {
+                    gFocus["cards"] = $(this).attr("btn-id");
+                    drawHuman();
+                });
             }
-            s += '</div>';
-            $("#human-selection-container").html(s);
-            $(".btn-human-selection").click(function() {
-                gFocus["cards"] = $(this).attr("btn-id");
-                drawHuman();
-            });
+            if (!onlyCards) {
+                
+                for (var i in gHumans) {
+                    if (gFocus["cards"] == gHumans[i].name) {
+                        var s = "<h4>经验</h4>";
+                        var exp = gHumans[i].exp;
+                        var nextExp = gHumans[i].nextExp;
+                        var f = Math.floor(exp * 100.0 / nextExp);
+
+                        s += '<div class="progress">';
+                        s += '<div class="progress-bar bg-success" role="progressbar" style="width: ' + f.toString() + '%;" aria-valuenow="'+ f.toString() + '" aria-valuemin="0" aria-valuemax="100">' + exp.toString()+"/" +nextExp.toString() + '</div>';
+                        s += '</div>';
+                        $("#human-information-div").html(s);
+                    }
+                }
+                
+                
+            }
+
+            
         }
 
         window.setInterval(function(){
@@ -279,7 +315,7 @@
             // else {
 
             // }
-        }, 1000);
+        }, 100);
    
 
     })();
