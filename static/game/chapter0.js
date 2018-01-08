@@ -17,13 +17,19 @@ function chapter0GStates(gHumans, gFocus, gContentStreamContainer, gBattleDraw, 
         // exp, hp, mp, pow, dex, speed, eachTurnCards, sheild, level
         return new Human(
         gContentStreamContainer, drawHuman, name, realName, cards, exp, hp, mp, pow, dex, speed, eachTurnCards, sheild, level);
-
-
-
+    }
+    function newLocationAddEvent(loc) {
+        return new LocationAddEvent(null, gMaps, loc)
+    }
+    function newLocationMoveEvent(loc) {
+        return new LocationMoveEvent(null, gFocus, gMaps, loc);
     }
     var drawHuman;
     for (var i in gHumans)
         drawHuman = gHumans[i].drawHuman;
+    
+
+
     
 
     var SLIM = newHuman("slim", "史莱姆同志", [new Card1(3)], 2, 40, 2, 0, 0, 5, 2, 0);
@@ -49,6 +55,10 @@ function chapter0GStates(gHumans, gFocus, gContentStreamContainer, gBattleDraw, 
     seqEvent.push(newBattleEvent([SLIM, SLIM], cardGetEvent, cardGetEvent));
     seqEvent.push(newBattleEvent([SLIM, SLIM], cardGetEvent, cardGetEvent));
     seqEvent.push(newChatEvents("你打听着神官为什么会前往中关村。|神官说她想要见见一个人，这个人。"));
+    
+    seqEvent.push(newLocationAddEvent({city:"北京",spot:"中关村"}));
+    
+    seqEvent.push(newLocationMoveEvent({city:"北京",spot:"中关村"}));
 
 
 

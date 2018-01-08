@@ -55,7 +55,8 @@
                             </table>
                         </div>
 
-                        <div class="panel panel-default pre-scrollable" style="min-height: 300px">
+                        <div class="panel panel-default pre-scrollable" style="min-height: 300px"
+                        id="map-panel">
                             <table class="table table-fixed">
                                 <tbody id = "map-table">
                                 </tbody>
@@ -70,7 +71,7 @@
                                         <th class="col-xs-2">姓名</th>
                                         <th class="col-xs-1">力量</th>
                                         <th class="col-xs-1">敏捷</th>
-                                        <!-- <th class="col-xs-1">速度</th> -->
+                                        <th class="col-xs-1">速度</th>
                                         <th class="col-xs-1">HP</th>
                                         <th class="col-xs-1">格挡</th>
                                         <th class="col-xs-1">MP</th>
@@ -103,15 +104,25 @@
 
     (function() {
         var gHumans, gFocus, gContentStreamContainer, gBattleStreamContainer, gBatlleHuman,
-        gBatlleDraw;
+        gBatlleDraw, gMaps;
         init();
         drawHuman();
+        drawMap();
         function init() {
             gContentStreamContainer = new StreamContainer(drawContent, contentPop);
-            gHumans = {"me" : new Human(gContentStreamContainer, drawHuman, "me", "你")};
+            gHumans = {me : new Human(gContentStreamContainer, drawHuman, "me", "你")};
             gBatlleHuman = {};
             gFocus = {
-                cards : "me"
+                cards : "me",
+                maps : {
+                    city : "init",
+                    spot : "null"
+                }
+            };
+
+            gMaps = {
+                draw : drawMap,
+                spots : []
             };
             
             
@@ -148,7 +159,7 @@
             // test2.push(test);
             // test2.push(test);
             // test.push(new ChatEvent(null, "test", gContentStreamContainer));
-            var start = chapter0GStates(gHumans, gFocus, gContentStreamContainer, gBatlleDraw, gBatlleHuman);
+            var start = chapter0GStates(gHumans, gFocus, gContentStreamContainer, gBatlleDraw, gBatlleHuman, gMaps);
             
             gStates = {
                 event : start
@@ -170,7 +181,7 @@
                 s += '<td class="col-xs-2">' + human.showName() + '</td>';
                 s += '<td class="col-xs-1">' + human.pow.toString() + '</td>';
                 s += '<td class="col-xs-1">' + human.dex.toString() + '</td>';
-                // s += '<td class="col-xs-1">' + human.speed.toString() + '</td>';
+                s += '<td class="col-xs-1">' + human.speed.toString() + '</td>';
                 s += '<td class="col-xs-1">' + human.hp.toString() + '</td>';
                 s += '<td class="col-xs-1">' + human.sheild.toString() + '</td>';
                 s += '<td class="col-xs-1">' + human.mp.toString() + '</td>';
@@ -178,11 +189,11 @@
                 s += '</tr>';
                 return s;
             }
-            for (var i = 0; i < gBatlleHuman["human"].length; i ++) {
-                s += generateString(gBatlleHuman["human"][i])
+            for (var i = 0; i < gBatlleHuman.human.length; i ++) {
+                s += generateString(gBatlleHuman.human[i])
             }
-            for (var i = 0; i < gBatlleHuman["enermy"].length; i ++) {
-                s += generateString(gBatlleHuman["enermy"][i])
+            for (var i = 0; i < gBatlleHuman.enermy.length; i ++) {
+                s += generateString(gBatlleHuman.enermy[i])
             }
             $("#battle-human-table").html(s);
             $("#battle-panel").scrollTop($("#battle-panel")[0].scrollHeight);
@@ -216,7 +227,31 @@
             $("#content-table tr:first-child").remove();
         }
 
-
+        function drawMap() {
+            // $("#map-table").html("");
+            var s = "";
+            for (var i = 0; i < gMaps.spots.length; i ++) {
+                var n = gMaps.spots[i].city;
+                s += "<tr><td>";
+                if (gFocus.maps.city == n) {
+                    s += '<button class="btn btn-default btn-success" type="button">' + n + '</button><br><br>';
+                    for (var j = 0; j < gMaps.spots[i].spots.length; j ++) {
+                        var m = gMaps.spots[i].spots[j];
+                        if (gFocus.maps.spot == m) {
+                            s += '<button class="btn btn-default btn-xs btn-success" type="button">' + m + '</button>';
+                        } else {
+                            s += '<button class="btn-xs btn btn-default" type="button">' + m + '</button>';                            
+                        }
+                    }
+                } else {
+                    s += '<button class="btn btn-default" type="button">' + n + '</button>';
+                }
+                s += '</tr></td>';
+            }
+            
+            $("#map-table").html(s);
+            // $("#map-panel").scrollTop($("#battle-panel")[0].scrollHeight);
+        }
         function drawCards(name) {
             $("#cards-btn-group").html("");
 
@@ -256,12 +291,12 @@
                 $("#cards-btn-group").append(s);   
             }
             $(".undetermined-cards-succ-btn").click(function() {
-                gHumans[gFocus["cards"]].acceptCard(Number($(this).attr("card-id")));
-                drawCards(gFocus["cards"]);
+                gHumans[gFocus.cards].acceptCard(Number($(this).attr("card-id")));
+                drawCards(gFocus.cards);
             });
             $(".undetermined-cards-discard-btn").click(function() {
-                gHumans[gFocus["cards"]].discardCard(Number($(this).attr("card-id")));
-                drawCards(gFocus["cards"]);
+                gHumans[gFocus.cards].discardCard(Number($(this).attr("card-id")));
+                drawCards(gFocus.cards);
             });
 
         }
@@ -272,7 +307,7 @@
                 var s = '<div class="btn-group">';
                 for (var i in gHumans) {
 
-                    if (gFocus["cards"] == gHumans[i].name) {
+                    if (gFocus.cards == gHumans[i].name) {
                         s += '<button type="button" class="btn btn-success btn-human-selection" btn-id="' +  gHumans[i].name + '">' + gHumans[i].showName() + '</button>';
                         drawCards(gHumans[i].name);
                     } else 
@@ -281,15 +316,15 @@
                 s += '</div>';
                 $("#human-selection-container").html(s);
                 $(".btn-human-selection").click(function() {
-                    gFocus["cards"] = $(this).attr("btn-id");
+                    gFocus.cards = $(this).attr("btn-id");
                     drawHuman();
                 });
             }
             if (!onlyCards) {
                 
                 for (var i in gHumans) {
-                    if (gFocus["cards"] == gHumans[i].name) {
-                        var s = "<h4>经验</h4>";
+                    if (gFocus.cards == gHumans[i].name) {
+                        var s = "<h4>等级:&nbsp" + gHumans[i].level + "</h4>";
                         var exp = gHumans[i].exp;
                         var nextExp = gHumans[i].nextExp;
                         var f = Math.floor(exp * 100.0 / nextExp);
@@ -297,6 +332,9 @@
                         s += '<div class="progress">';
                         s += '<div class="progress-bar bg-success" role="progressbar" style="width: ' + f.toString() + '%;" aria-valuenow="'+ f.toString() + '" aria-valuemin="0" aria-valuemax="100">' + exp.toString()+"/" +nextExp.toString() + '</div>';
                         s += '</div>';
+
+                        // s += "<p>速度: &nbsp" + gHumans[i].speed + "</p>";
+
                         $("#human-information-div").html(s);
                     }
                 }
@@ -308,14 +346,14 @@
         }
 
         window.setInterval(function(){
-            // alert(gStates["event"]);
-            // if (gStates["event"] != null)
-                gStates["event"] = gStates["event"].execute();
-                // alert(gStates["event"].execute);
+            // alert(gStates.event);
+            // if (gStates.event != null)
+                gStates.event = gStates.event.execute();
+                // alert(gStates.event.execute);
             // else {
 
             // }
-        }, 100);
+        }, 10);
    
 
     })();

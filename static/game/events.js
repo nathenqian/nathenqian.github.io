@@ -54,11 +54,11 @@ ExpEvent.prototype.constructor = ExpEvent;
 ExpEvent.prototype.execute = function() {
     // alert(1);
     var totalExp = 0;
-    for (var i = 0; i < this.gBatlleHuman["enermy"].length; i ++) {
-        totalExp += this.gBatlleHuman["enermy"][i].exp;
+    for (var i = 0; i < this.gBatlleHuman.enermy.length; i ++) {
+        totalExp += this.gBatlleHuman.enermy[i].exp;
     }
-    for (var i = 0; i < this.gBatlleHuman["human"].length; i ++) {
-        var obj = this.gBatlleHuman["human"][i];
+    for (var i = 0; i < this.gBatlleHuman.human.length; i ++) {
+        var obj = this.gBatlleHuman.human[i];
         if (obj.isAlive())
             obj.ref.expGet(totalExp);
         else
@@ -83,25 +83,25 @@ function BattleEvent(parent, gHumans, enermy, gBatlleHuman, battleDraw, succEven
     this.battle = gBatlleHuman;
     this.turn = 0;
     this.resetFunc = function() {
-        gBatlleHuman["human"] = [];
-        gBatlleHuman["enermy"] = [];
+        gBatlleHuman.human = [];
+        gBatlleHuman.enermy = [];
         this.turnList = [];
         this.nameReflect = {}
         for (var name in gHumans) {
             var temp = gHumans[name].deepcopy();
-            gBatlleHuman["human"].push(temp);
+            gBatlleHuman.human.push(temp);
             this.turnList.push({name : name, speed : temp.speed, enermy : false});
             this.nameReflect[name] = temp;
         } 
         for (var i = 0; i < enermy.length; i ++) {
             var temp = enermy[i].deepcopy();
             temp.name += i.toString();
-            gBatlleHuman["enermy"].push(temp);
+            gBatlleHuman.enermy.push(temp);
             this.turnList.push({name : temp.name, speed : temp.speed, enermy : true});
             this.nameReflect[temp.name] = temp;
         }
         this.turnList.sort(function(a, b) {
-            return -a["speed"] + b["speed"];
+            return -a.speed + b.speed;
         });
     }
     this.resetFunc();
@@ -137,10 +137,10 @@ BattleEvent.prototype.execute = function() {
     }
     else {
         this.battleDraw.update();
-        if (BattleEventAllKilled(this.battle["human"])) {
+        if (BattleEventAllKilled(this.battle.human)) {
             return this.failEvent.execute();
         } 
-        if (BattleEventAllKilled(this.battle["enermy"])) {
+        if (BattleEventAllKilled(this.battle.enermy)) {
             this.battleDraw.push("战斗结束!");
             this.expEvent = new ExpEvent(this, this.battle);
             this.expEvent.execute();
@@ -148,23 +148,23 @@ BattleEvent.prototype.execute = function() {
         }
 
         var turn = (this.turn - 2) % this.turnList.length;
-        // alert(this.turnList[turn]["name"]);
-        // alert(this.nameReflect[this.turnList[turn]["name"]].hp);
-        // alert(this.nameReflect[this.turnList[turn]["name"]].isAlive());
-        while (this.nameReflect[this.turnList[turn]["name"]].isAlive() == false) {
+        // alert(this.turnList[turn].name);
+        // alert(this.nameReflect[this.turnList[turn].name].hp);
+        // alert(this.nameReflect[this.turnList[turn].name].isAlive());
+        while (this.nameReflect[this.turnList[turn].name].isAlive() == false) {
             turn = (turn + 1) % this.turnList.length;
             this.turn += 1;
         }
         // alert(turn); alert(this.turn);
-        var obj = this.nameReflect[this.turnList[turn]["name"]];
+        var obj = this.nameReflect[this.turnList[turn].name];
         var cards = obj.pickCards();
         var mp = obj.mp;
-        var teammates = this.battle["human"];
-        var enermys = this.battle["enermy"];
+        var teammates = this.battle.human;
+        var enermys = this.battle.enermy;
 
-        if (this.turnList[turn]["enermy"]) {
-            enermys = this.battle["human"];
-            teammates = this.battle["enermy"];
+        if (this.turnList[turn].enermy) {
+            enermys = this.battle.human;
+            teammates = this.battle.enermy;
         }
         this.battleDraw.push(obj.showname + "开始了行动");
         // for (var i = 0; i < cards.length; i ++)
@@ -173,12 +173,12 @@ BattleEvent.prototype.execute = function() {
             // var used = 0;
         for (var i = 0; i < cards.length; i ++) {
             var target = cards[i].canUse(obj, teammates, enermys);
-            if (target != null && cards[i].data["cost"] <= mp) {
+            if (target != null && cards[i].data.cost <= mp) {
                 var content = cards[i].influence(obj, target);
                 content = content.replace("from", obj.showname + " ");
                 content = content.replace("target", target.showname + " ");
                 this.battleDraw.push(content);
-                mp -= cards[i].data["cost"];
+                mp -= cards[i].data.cost;
             }
         }
         // if (used == 0) break;
@@ -330,8 +330,8 @@ CardGetEvent.prototype.execute = function() {
             var list = this.cardsList[name];
             var prob = 0.0;
             for (var i = 0; i < list.length; i ++) {
-                var card = list[i]["card"];
-                prob += list[i]["prob"];
+                var card = list[i].card;
+                prob += list[i].prob;
                 if (rand < prob) {
                     this.gHumans[name].addUndertermined(Object.create(card));
                     redraw = 1;
@@ -373,7 +373,7 @@ BtnClickEvent.prototype.execute = function() {
         var s = "";
         var idLeft = gBtnId;
         for (var i = 0; i < this.events.length; i ++) {
-            s += '<div class="btn btn-default" data-id="'+i.toString()+'" id="btn-click-event-btn' + gBtnId.toString() + '">' + this.events[i]["desc"] + '</div>';
+            s += '<div class="btn btn-default" data-id="'+i.toString()+'" id="btn-click-event-btn' + gBtnId.toString() + '">' + this.events[i].desc + '</div>';
             gBtnId += 1;
         }
         this.container.push(s);
@@ -393,7 +393,7 @@ BtnClickEvent.prototype.execute = function() {
     }
     if (this.clickId[0] != undefined) {
         var id = this.clickId[0];
-        return this.events[id]["event"].execute();
+        return this.events[id].event.execute();
     } else
         return this;
 };
@@ -428,6 +428,52 @@ PeopleChangeEvent.prototype.execute = function() {
     }
 
     this.human.drawHuman();
+    return this.pop();
+};
+
+
+function LocationMoveEvent(parent, gFocus, gMaps, loc) {
+    EventBase.call(this, parent);
+    this.gFocus = gFocus;
+    this.loc = Object.create(loc);
+    this.gMaps = gMaps;
+}
+
+LocationMoveEvent.prototype = Object.create(EventBase.prototype);
+LocationMoveEvent.prototype.constructor = LocationMoveEvent;
+LocationMoveEvent.prototype.execute = function() {
+    this.gFocus.maps = Object.create(this.loc);
+    // alert(this.loc);
+    this.gMaps.draw();
+    return this.pop();
+};
+
+function LocationAddEvent(parent, gMaps, loc) {
+    EventBase.call(this, parent);
+    this.gMaps = gMaps;
+    this.loc = Object.create(loc);
+}
+
+LocationAddEvent.prototype = Object.create(EventBase.prototype);
+LocationAddEvent.prototype.constructor = LocationAddEvent;
+LocationAddEvent.prototype.execute = function() {
+    var city = this.loc.city;
+
+    for (var i = 0; i < this.gMaps.spots.length; i ++) {
+        var n = this.gMaps.spots[i];
+        if (n.city == city) {
+            for (var j = 0; j < this.gMaps.spots[i].spots.length; j ++) {
+                if (this.gMaps.spots[i].spots[j] == loc.spot)
+                    return this.pop();
+            }
+            this.gMaps.spots[i].spots.push(loc.spot);
+            this.gMaps.draw();
+            return this.pop();
+        }    
+    }
+    this.gMaps.spots.push({city:city, spots:[this.loc.spot]});
+    this.gMaps.draw();
+    // alert(1);
     return this.pop();
 };
 

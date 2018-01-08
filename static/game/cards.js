@@ -13,18 +13,18 @@ function CardBase(dict) {
 
 function Card1(damage) {
     dict = {};
-    dict["name"] = "砍";
-    dict["damage"] = damage;
-    dict["cost"] = 1;
+    dict.name = "砍";
+    dict.damage = damage;
+    dict.cost = 1;
     CardBase.call(this, dict);
     // Card1.prototype = Object.create(CardBase.prototype);
 }
 Card1.prototype = {
     toString : function() {
-        return "砍：" + this.data["damage"].toString();
+        return "砍：" + this.data.damage.toString();
     },
     description : function() {
-        return "用力砍人造成" + this.data["damage"].toString() + "伤害";
+        return "用力砍人造成" + this.data.damage.toString() + "伤害";
     },
     canUse : function(myself, teammates, enermys) {
         for (var i = 0; i < enermys.length; i ++)
@@ -33,7 +33,7 @@ Card1.prototype = {
         return null;
     },
     influence : function(myself, target) {
-        var dmg = this.data["damage"];
+        var dmg = this.data.damage;
         if (target.sheild >= dmg) {
             target.sheild -= dmg;
             dmg = 0;
@@ -43,30 +43,30 @@ Card1.prototype = {
         }
 
         target.hp = Math.max(0, target.hp - dmg);
-        return "from攻击了target 造成" +this.data["damage"] + "伤害" ;
+        return "from攻击了target 造成" +this.data.damage + "伤害" ;
     }
 };
 
 function Card2(sheild) {
     dict = {};
-    dict["name"] = "盾";
-    dict["sheild"] = sheild;
-    dict["cost"] = 1;
+    dict.name = "盾";
+    dict.sheild = sheild;
+    dict.cost = 1;
     CardBase.call(this, dict);
     // Card1.prototype = Object.create(CardBase.prototype);
 }
 Card2.prototype = {
     toString : function() {
-        return "防御：" + this.data["sheild"].toString();
+        return "防御：" + this.data.sheild.toString();
     },
     description : function() {
-        return "用力防守" + this.data["damage"].toString() + "格挡";
+        return "用力防守" + this.data.damage.toString() + "格挡";
     },
     canUse : function(myself, teammates, enermys) {
         return myself;
     },
     influence : function(myself, target) {
-        target.sheild += this.data["sheild"];
+        target.sheild += this.data.sheild;
         return "from防御！！";
     }
 };
